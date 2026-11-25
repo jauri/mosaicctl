@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mosaic Test Pattern</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
+  canvas { display: block; }
+  #help { position: fixed; top: 16px; left: 16px; color: #ccc; font: 20px/1.4 system-ui, sans-serif;
+          background: rgba(0,0,0,.7); padding: 12px 16px; border: 1px solid #555; cursor: default; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="help">
+  <b>Mosaic test pattern</b><br>
+  F11 or click: fullscreen across the whole wall &nbsp;·&nbsp; H: hide this box<br>
+  1: moving bars (frame lock / tearing) &nbsp;·&nbsp; 2: cell numbers + grid (display order, bezel)<br>
+  ↑/↓: bar speed &nbsp;·&nbsp; ←/→: column count (now <span id="cols"></span>)<br>
+  What to look for: with frame lock working, bars cross every display boundary in one
+  clean line. Steps, a jitter or a horizontal tear at a boundary means displays are not in sync.
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+let cols = parseInt(params.get("cols") || "9", 10);
+let speed = parseFloat(params.get("speed") || "1200");   // pixels per second
+let mode = 1;
+const c = document.getElementById("c"), g = c.getContext("2d");
+const help = document.getElementById("help"), colsEl = document.getElementById("cols");
+
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  c.width = Math.round(innerWidth * dpr); c.height = Math.round(innerHeight * dpr);
+  c.style.width = innerWidth + "px"; c.style.height = innerHeight + "px";
+}
+addEventListener("resize", resize); resize();
+
+addEventListener("keydown", e => {
+  if (e.key === "h" || e.key === "H") help.hidden = !help.hidden;
+  else if (e.key === "1") mode = 1;
+  else if (e.key === "2") mode = 2;
+  else if (e.key === "ArrowUp") speed *= 1.25;
+  else if (e.key === "ArrowDown") speed /= 1.25;
+  else if (e.key === "ArrowRight") cols++;
+  else if (e.key === "ArrowLeft") cols = Math.max(1, cols - 1);
+});
+c.addEventListener("click", () => document.documentElement.requestFullscreen?.());
+
+let frames = 0, last = performance.now(), fps = 0;
+function draw(t) {
+  const W = c.width, H = c.height;
+  frames++; if (t - last > 1000) { fps = frames * 1000 / (t - last); frames = 0; last = t; }
+  colsEl.textContent = cols;
+  g.fillStyle = "#000"; g.fillRect(0, 0, W, H);
+
+  if (mode === 1) {
+    // Vertical white bars moving horizontally across the whole surface.
+    const period = Math.max(200, W / cols / 2), barW = Math.max(8, period / 8);
+    const offset = (t / 1000 * speed) % period;
+    g.fillStyle = "#fff";
+    for (let x = offset - period; x < W; x += period) g.fillRect(Math.round(x), 0, barW, H);
+    // A diagonal line also makes small timing offsets between displays easy to spot.
+    g.strokeStyle = "#f33"; g.lineWidth = 6;
+    const dx = ((t / 1000 * speed * 0.5) % W);
+    g.beginPath(); g.moveTo(dx - H, H); g.lineTo(dx, 0); g.stroke();
+  } else {
+    // Cell numbers, borders and a 100 px grid: checks display order and bezel correction.
+    const cw = W / cols;
+    g.strokeStyle = "#333"; g.lineWidth = 1;
+    for (let x = 0; x < W; x += 100) { g.beginPath(); g.moveTo(x + .5, 0); g.lineTo(x + .5, H); g.stroke(); }
+    for (let y = 0; y < H; y += 100) { g.beginPath(); g.moveTo(0, y + .5); g.lineTo(W, y + .5); g.stroke(); }
+    for (let i = 0; i < cols; i++) {
+      g.strokeStyle = "#0f0"; g.lineWidth = 8; g.strokeRect(i * cw + 4, 4, cw - 8, H - 8);
+      g.fillStyle = "#fff"; g.font = `bold ${Math.min(cw, H) * 0.4}px system-ui, sans-serif`;
+      g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(String(i), i * cw + cw / 2, H / 2);
+    }
+    // Straight line across all panels: it should look unbroken if bezel correction is right.
+    g.strokeStyle = "#ff0"; g.lineWidth = 6;
+    g.beginPath(); g.moveTo(0, H * 0.25); g.lineTo(W, H * 0.75); g.stroke();
+  }
+
+  g.fillStyle = "#0f0"; g.font = "24px monospace"; g.textAlign = "left"; g.textBaseline = "bottom";
+  g.fillText(`${W}x${H}  ${fps.toFixed(1)} fps  speed ${Math.round(speed)} px/s`, 16, H - 16);
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>

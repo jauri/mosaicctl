@@ -1,0 +1,30 @@
+# Target wall: 1x9 portrait 4K on 4x RTX PRO 4000 Blackwell, internal frame lock.
+# The GPU/output mapping is provisional until the wall is cabled (see specs/open-questions.md).
+# Add `edid_serial: "..."` to each display once the serials are known (or generate this
+# file with `mosaicctl save`).
+version: 1
+name: research-wall
+description: 1x9 portrait 4K wall, 4x RTX PRO 4000 Blackwell, internal frame lock
+
+grid:
+  rows: 1
+  cols: 9
+  mode: { width: 3840, height: 2160, refresh_hz: 60 }
+  rotation: 90
+  bezel: { horizontal_px: 0, vertical_px: 0 }
+  displays:            # 3/2/2/2 split across the 4 GPUs
+    - { row: 0, col: 0, gpu: 0, output: 0 }
+    - { row: 0, col: 1, gpu: 0, output: 1 }
+    - { row: 0, col: 2, gpu: 0, output: 2 }
+    - { row: 0, col: 3, gpu: 1, output: 0 }
+    - { row: 0, col: 4, gpu: 1, output: 1 }
+    - { row: 0, col: 5, gpu: 2, output: 0 }
+    - { row: 0, col: 6, gpu: 2, output: 1 }
+    - { row: 0, col: 7, gpu: 3, output: 0 }
+    - { row: 0, col: 8, gpu: 3, output: 1 }
+
+sync:
+  enabled: true
+  source: internal
+  server: { gpu: 0, output: 0 }
+  require_lock: true
