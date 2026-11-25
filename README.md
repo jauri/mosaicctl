@@ -56,12 +56,20 @@ The full checklist is in [`windows/README.md`](windows/README.md). In short:
 
 1. Copy the `windows/` folder to the Windows PC. If Windows blocks the files, right-click each one → Properties → **Unblock**.
 2. Double-click `Run-Collect.cmd` and enter the label `baseline`. The collector is read-only and never changes settings.
-3. Set up Mosaic by hand in NVIDIA Control Panel (a 1×9 grid, portrait, 3840×2160 @ 60 Hz), then collect `mosaic-on`.
+3. Set up Mosaic from the command line: double-click `Run-Mosaic.cmd` and choose `1` Help, `2` Query, `3` Test (changes nothing), then `4` Apply (asks before changing). Then collect `mosaic-on`.
 4. Open `testpattern.html` fullscreen (F11) and press `2`: check that the cell order reads 0–8 and that the bezel line is straight.
-5. Set up frame lock in NVIDIA Control Panel (check that all 4 GPUs are on the sync board), then collect `framelock-on`.
+5. Set up frame lock. `configureMosaic.exe` most likely can't do this, so for now use NVIDIA Control Panel; check that all 4 GPUs are on the sync board. Then collect `framelock-on`.
 6. On the test pattern, press `1`: the moving bars should cross every display gap cleanly.
 7. Fill in `windows/m0-findings.md` as you go, and take screenshots.
 8. Bring back the `windows/results/*.zip` files, the findings form and the screenshots.
+
+The Mosaic script also takes options in PowerShell (custom display order, extra set options):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File windows\mosaic-cli.ps1 -Action Test -Outputs "0,0 0,1 0,2 1,0 1,1 2,0 2,1 3,0 3,1"
+```
+
+Every Mosaic command and its result is logged to `windows\results\mosaic-cli-log.txt`.
 
 You can also run the collector from PowerShell directly:
 

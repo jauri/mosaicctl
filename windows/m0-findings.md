@@ -14,7 +14,8 @@ Date: ____________   Operator: ____________
 
 ## B. Mosaic setup (R1)
 
-- Did the 1×9 portrait 3840×2160 @ 60 Hz grid apply? yes / no
+- Did `Test` (menu 3) accept the 1×9 portrait 3840×2160 @ 60 Hz layout? yes / no
+- Did `Apply` (menu 4) work? yes / no   Exact `set` command that worked (from `results\mosaic-cli-log.txt`): ____________
 - If no, the exact error message: ____________________________________________
 - Largest grid that did work: ____________
 - How the 9 displays were split across the GPUs (GPU → number of displays): ____________
@@ -42,7 +43,7 @@ Date: ____________   Operator: ____________
 
 ## F. configureMosaic.exe
 
-- Did `listconfigcommands` (the `cm-listconfigcommands.txt` file) print a command that recreates the current setup? yes / no
+- Did `listconfigcmd` (menu 5 Save, or the `cm-listconfigcmd.txt` file) print a command that recreates the current setup? yes / no
 - Which help or query commands produced useful output (see the `cm-*.txt` files): ____________
 
 ## G. Anything else surprising

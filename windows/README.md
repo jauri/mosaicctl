@@ -7,6 +7,8 @@ raw tool output we need to write the real `mosaicctl` backend.
 
 | File | What it is |
 |---|---|
+| `Run-Mosaic.cmd` | Double-click for a menu that drives Mosaic with `configureMosaic.exe`: help, query, test, apply, save, disable. No Control Panel needed. |
+| `mosaic-cli.ps1` | The script behind that menu. The wall settings (1×9, 4K, rotate 90) are the defaults at the top. |
 | `Run-Collect.cmd` | Double-click to run the collector. It asks for a label. |
 | `collect-m0.ps1` | The collector itself. **Read-only**: it never changes any display, Mosaic or sync setting. |
 | `testpattern.html` | Moving bars and cell numbers, for checking frame lock, display order and bezels by eye. |
@@ -28,20 +30,32 @@ Each run creates `results\<time>-<label>\` and a matching `.zip`.
    Check `summary.txt`: it should show 4 GPUs, 9 monitors, the driver version, and whether `configureMosaic.exe` and a sync device were found.
    - Fill in section A of `m0-findings.md`.
 
-2. **Set up Mosaic by hand.** In NVIDIA Control Panel → *Workstation* → *Set up Mosaic*, create a 1×9 grid with portrait rotation at 3840×2160 @ 60 Hz.
-   - Time how long the apply takes (stopwatch), and note any error or limit message. **This tests R1.**
-   - If the 1×9 grid is refused, note exactly what the message says and what the largest working option is (for example a smaller grid, or a different GPU split).
-   - Take screenshots of each page of the wizard.
+2. **Set up Mosaic from the command line.** Double-click `Run-Mosaic.cmd`, then:
+   - **`1` Help:** read which commands and options this driver's `configureMosaic.exe` supports. Note the exact names of any overlap/bezel options, and anything about sync or frame lock.
+   - **`2` Query:** lists the GPUs, the display ports and the current grids. Check that all 4 GPUs and all 9 displays appear, and note each display's GPU,port numbers.
+   - **`3` Test:** checks the 1×9 portrait layout **without changing anything**. If it is rejected, the output says why. **This is the first test of R1.**
+   - **`4` Apply:** saves the current setup, runs the test again, shows the exact `set` command, and only applies it after you type `YES`. It times the apply (also R1).
+   - If test or apply fails, copy the exact message into section B. Try `-Outputs` with an explicit GPU,port order (below), or a smaller grid, to find what does work.
+   - Each run saves its output under `results\<time>-mosaic-<action>\`, and every command goes into `results\mosaic-cli-log.txt`. That log is the record of the exact command that worked.
    - Fill in section B.
+
+   **Custom display order or extra options** (from a PowerShell window in this folder):
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File mosaic-cli.ps1 -Action Test -Outputs "0,0 0,1 0,2 1,0 1,1 2,0 2,1 3,0 3,1"
+   powershell -NoProfile -ExecutionPolicy Bypass -File mosaic-cli.ps1 -Action Test -ExtraArgs "overlapcol=-40"
+   ```
+   Replace `-Action Test` with `-Action Apply` once the test passes. The option names in `-ExtraArgs` are only examples; use the names `Help` printed. To make a working order the default, edit the `$Outputs` line at the top of `mosaic-cli.ps1` in Notepad.
+
+   **To undo:** menu `6` Disable turns Mosaic off. Or open the `before-listconfigcmd.txt` file from that run, which holds the previous setup as a command line, and run that command.
 
 3. **Collect `mosaic-on`.** `summary.txt` should now show **one** desktop screen of about 19440×3840.
 
 4. **Check display order and bezels.** Open `testpattern.html` in Chrome or Edge, press F11 (or click) for fullscreen, then press `2`.
-   - The cell numbers should read 0 to 8 from left to right, one per panel.
+   - The cell numbers should read 0 to 8 from left to right, one per panel. If they don't, write down the actual order, then re-apply with `-Outputs` listing the GPU,port pairs in the left-to-right order you want.
    - The yellow diagonal should look straight across the panels; if it kinks at the gaps, the bezel correction needs adjusting.
    - Photograph the wall. Fill in section C.
 
-5. **Set up frame lock.** In NVIDIA Control Panel → *Workstation* → *Synchronize displays* (the page name may differ slightly), make one display the timing server and the others clients.
+5. **Set up frame lock.** As far as we know, `configureMosaic.exe` does not set up frame lock; check the Help output from step 2 to be sure. If it really doesn't, this one step uses NVIDIA Control Panel → *Workstation* → *Synchronize displays* (the page name may differ slightly). Make one display the timing server and the others clients. `mosaicctl` will automate this later through NVAPI.
    - Confirm that the sync board shows **all 4 GPUs** connected. **This tests R2.**
    - Screenshot the sync page, including the status indicators.
    - Fill in section D.

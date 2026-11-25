@@ -378,7 +378,7 @@ if ($tools.Count -eq 0) {
         @{ Name = "cm-query-gpus";          Args = @("query", "gpus") },
         @{ Name = "cm-query-displays";      Args = @("query", "displays") },
         @{ Name = "cm-query-topos";         Args = @("query", "topos") },
-        @{ Name = "cm-listconfigcommands";  Args = @("listconfigcommands") }
+        @{ Name = "cm-listconfigcmd";       Args = @("listconfigcmd") }
     )
     foreach ($c in $readOnly) {
         $exit = Invoke-Capture $c.Name $tool $c.Args 60

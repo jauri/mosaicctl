@@ -38,7 +38,11 @@ class MosaicBackend(Protocol):
 - Turns a `Layout` into command-line arguments (pure function `build_set_args(layout) -> list[str]`, unit-tested heavily).
 - Runs it with `subprocess.run([...], capture_output=True, timeout=...)`, never with `shell=True`.
 - Parses the `query` output into models (pure function `parse_query(text) -> ...`, tested against fixtures).
-- **The exact `configureMosaic.exe` syntax and output format must be checked against the installed driver version** (run its built-in help) before implementing. Record the version in the fixtures.
+- Known commands (from NVIDIA's readme and forum posts, still to be checked against the installed version): `query`, `test`, `set`, `disable`, `listconfigcmd`, `help`. Grid options include `rows=`, `cols=`, `res=W,H,Hz`, `rotate=`, and `out=GPU,port` (row-major; if you give any display you must give all of them), with `nextgrid` for multiple grids. Output is XML on stdout. Exit codes: 0 success, 1 success with warnings, 2 invalid command or parameters.
+- **`test` before `set`:** the backend runs `test` with the same arguments before every `set`. This backs FR-9 with the driver's own check, on top of our validation.
+- **`listconfigcmd`** prints the current setup as a command line; use it for the `last-known` snapshot (FR-16) alongside our YAML.
+- The M0 kit's `windows/mosaic-cli.ps1` is a working prototype of this backend in PowerShell. Its log of commands that worked becomes the golden test data for `build_set_args`.
+- **The exact syntax and output format must still be checked against the installed driver version** (run its built-in help) before implementing. Record the version in the fixtures.
 
 ## Frame lock backend
 
